@@ -12,7 +12,7 @@ deploy:
   stage: deploy
   image: google/cloud-sdk:slim
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $GCP_PROJECT_ID
   # Use Workload Identity Federation (GitLab OIDC) instead of a JSON key.
   id_tokens:
     GCP_ID_TOKEN:
