@@ -1,0 +1,26 @@
+# CI/CD for the agent itself (yes, it can heal its own pipeline too).
+stages: [test, deploy]
+
+test:
+  stage: test
+  image: python:3.12-slim
+  script:
+    - pip install -q -r requirements-dev.txt
+    - pytest -q
+
+deploy:
+  stage: deploy
+  image: google/cloud-sdk:slim
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  # Use Workload Identity Federation (GitLab OIDC) instead of a JSON key.
+  id_tokens:
+    GCP_ID_TOKEN:
+      aud: https://iam.googleapis.com/projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${GCP_WIF_POOL}/providers/${GCP_WIF_PROVIDER}
+  script:
+    - echo "$GCP_ID_TOKEN" > .ci_token
+    - gcloud iam workload-identity-pools create-cred-config
+        "projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${GCP_WIF_POOL}/providers/${GCP_WIF_PROVIDER}"
+        --service-account="${GCP_DEPLOY_SA}" --credential-source-file=.ci_token --output-file=.gcp_creds.json
+    - gcloud auth login --cred-file=.gcp_creds.json
+    - PROJECT_ID=$GCP_PROJECT_ID REGION=$GCP_REGION IMAGE_TAG=$CI_COMMIT_SHORT_SHA ./deploy/cloudrun.sh

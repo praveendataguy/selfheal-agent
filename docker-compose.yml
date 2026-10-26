@@ -1,0 +1,11 @@
+services:
+  agent:
+    build: .
+    env_file: .env
+    ports:
+      - "8080:8080"
+    # Optional: expose to GitLab/Slack during local dev with a tunnel, e.g.
+    #   cloudflared tunnel --url http://localhost:8080
+    # Mount gcloud ADC credentials when LLM_PROVIDER=vertex:
+    # volumes:
+    #   - ~/.config/gcloud:/home/agent/.config/gcloud:ro

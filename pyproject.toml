@@ -1,0 +1,8 @@
+[project]
+name = "selfheal-agent"
+version = "0.1.0"
+description = "Autonomous self-healing CI/CD agent for GitLab, powered by Claude"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
